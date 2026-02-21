@@ -27,6 +27,41 @@ class PostFrontmatter:
 _slug_re = re.compile(r"[^a-z0-9]+")
 
 
+def normalize_markdown_body(body: str) -> str:
+    if not isinstance(body, str):
+        return ""
+
+    s = body.replace("\r\n", "\n").replace("\r", "\n")
+
+    escaped_newlines = s.count("\\n")
+    actual_newlines = s.count("\n")
+    if escaped_newlines and (actual_newlines == 0 or escaped_newlines > actual_newlines * 3):
+        s = s.replace("\\r\\n", "\n").replace("\\n", "\n").replace("\\t", "\t")
+
+    def _u(m: re.Match[str]) -> str:
+        try:
+            return chr(int(m.group(1), 16))
+        except Exception:
+            return m.group(0)
+
+    s = re.sub(r"\\u([0-9a-fA-F]{4})", _u, s)
+
+    # Fix common mojibake sequences for punctuation.
+    replacements = {
+        "â€”": "—",
+        "â€“": "–",
+        "â€™": "’",
+        "â€œ": "“",
+        "â€�": "”",
+        "â€¦": "…",
+        "窶覇": "—",
+    }
+    for bad, good in replacements.items():
+        if bad in s:
+            s = s.replace(bad, good)
+    return s
+
+
 def slugify(title: str) -> str:
     s = title.strip().lower()
     s = _slug_re.sub("-", s)
@@ -96,7 +131,7 @@ def build_markdown(*, title: str, tags: list[str], summary: str, slug: str, body
         default_flow_style=False,
     ).strip()
 
-    body_clean = (body or "").strip() + "\n"
+    body_clean = normalize_markdown_body(body or "").strip() + "\n"
     return f"---\n{fm_yaml}\n---\n\n{body_clean}"
 
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 
 from dotenv import load_dotenv
@@ -11,6 +12,50 @@ from .blog_posts import BlogPostError, write_post
 from .git_ops import GitError, stage_commit_push
 from .ollama_client import OllamaError, chat, extract_json_object
 from .paths import repo_root
+
+
+def _coerce_tags(value: object) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        out: list[str] = []
+        for v in value:
+            if not isinstance(v, str):
+                continue
+            t = v.strip()
+            if t:
+                out.append(t)
+        return out
+    if isinstance(value, str):
+        parts = re.split(r"[,;]", value)
+        cleaned = [p.strip().rstrip(".") for p in parts]
+        return [c for c in cleaned if c]
+    return []
+
+
+def _strip_basic_markdown(text: str) -> str:
+    s = text
+    s = re.sub(r"^\s{0,3}#{1,6}\s+", "", s, flags=re.MULTILINE)
+    s = re.sub(r"^\s*>\s?", "", s, flags=re.MULTILINE)
+    s = re.sub(r"^\s*(?:[-*+]\s+|\d+\.\s+)", "", s, flags=re.MULTILINE)
+    s = re.sub(r"`([^`]+)`", r"\1", s)
+    s = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1", s)
+    s = re.sub(r"[*_]{1,3}([^*_]+)[*_]{1,3}", r"\1", s)
+    return s
+
+
+def _derive_summary(*, title: str, content: str) -> str:
+    raw = (content or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+    if raw:
+        paragraphs = [p.strip() for p in re.split(r"\n\s*\n", raw) if p.strip()]
+        for p in paragraphs:
+            cleaned = _strip_basic_markdown(p).strip()
+            cleaned = re.sub(r"\s+", " ", cleaned)
+            if cleaned:
+                return (cleaned[:157] + "...") if len(cleaned) > 160 else cleaned
+
+    t = (title or "").strip()
+    return t if t else "Untitled post"
 
 
 def _build_prompt(user_instruction: str) -> str:
@@ -26,7 +71,10 @@ def _build_prompt(user_instruction: str) -> str:
         "}\n\n"
         "Rules:\n"
         "- Do NOT include frontmatter. The tool will add it.\n"
-        "- Keep content as clean Markdown.\n\n"
+        "- Keep content as clean Markdown.\n"
+        "- summary is REQUIRED (1-2 sentences).\n"
+        "- Do NOT double-escape newlines (avoid literal \\\\n in the string).\n"
+        "  Use normal JSON escaping so the parsed string contains real newlines.\n\n"
         f"Instruction: {user_instruction}\n"
     )
 
@@ -90,16 +138,23 @@ def main(argv: list[str] | None = None) -> int:
                 raise BlogPostError("Payload must be a JSON object")
 
             title = payload.get("title")
-            tags = payload.get("tags")
             summary = payload.get("summary")
             content = payload.get("content")
             overwrite = bool(payload.get("overwrite", False))
 
+            title_s = str(title or "").strip()
+            content_s = str(content or "")
+            summary_s = str(summary or "").strip()
+            if not summary_s:
+                summary_s = _derive_summary(title=title_s, content=content_s)
+
+            tags_list = _coerce_tags(payload.get("tags"))
+
             result = write_post(
-                title=str(title or ""),
-                tags=tags if isinstance(tags, list) else [],
-                summary=str(summary or ""),
-                content=str(content or ""),
+                title=title_s,
+                tags=tags_list,
+                summary=summary_s,
+                content=content_s,
                 overwrite=overwrite,
             )
             print(json.dumps(result, indent=2), file=sys.stderr)
