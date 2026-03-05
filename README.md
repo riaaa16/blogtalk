@@ -63,3 +63,25 @@ Auto-commit + push after each post:
 Tool provided:
 
 - `create_blog_post(payload)`
+
+### Web UI (local)
+
+This repo is configured for static export (`output: "export"`), so the web UI talks to a local Python HTTP server (not a Next.js API route).
+
+1) Start Ollama:
+
+- `ollama serve`
+
+2) Start the AI manager HTTP server:
+
+- `./.venv/Scripts/python.exe -m ai_blog_manager.http_server`
+
+3) Run Next.js locally:
+
+- `npm run dev`
+
+4) Open:
+
+- `http://localhost:3000/admin/ai`
+
+The page sends your prompt to `POST /api/create_post`, which generates a Markdown post under `content/posts/`.

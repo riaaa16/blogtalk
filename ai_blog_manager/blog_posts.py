@@ -59,6 +59,46 @@ def normalize_markdown_body(body: str) -> str:
     for bad, good in replacements.items():
         if bad in s:
             s = s.replace(bad, good)
+
+    # Some models occasionally wrap the entire post in Markdown blockquotes
+    # (prefixing most lines with '>'). If that happens, strip a single
+    # blockquote marker from affected lines. Preserve fenced code blocks.
+    lines = s.split("\n")
+    bq_re = re.compile(r"^\s{0,3}>\s?")
+    in_fence = False
+    non_empty = 0
+    bq_lines = 0
+    for line in lines:
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+
+        if line.strip():
+            non_empty += 1
+            if bq_re.match(line):
+                bq_lines += 1
+
+    strip_global_blockquote = non_empty >= 5 and (bq_lines / max(non_empty, 1)) >= 0.6
+    if strip_global_blockquote:
+        out_lines: list[str] = []
+        in_fence = False
+        for line in lines:
+            if line.lstrip().startswith("```"):
+                in_fence = not in_fence
+                out_lines.append(line)
+                continue
+            if in_fence:
+                out_lines.append(line)
+                continue
+
+            if bq_re.match(line):
+                out_lines.append(bq_re.sub("", line, count=1))
+            else:
+                out_lines.append(line)
+
+        s = "\n".join(out_lines)
     return s
 
 

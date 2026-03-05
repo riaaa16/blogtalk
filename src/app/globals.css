@@ -5,17 +5,17 @@
 :root[data-theme="light"] {
   --text: #170202;
   --background: #ffffff;
-  --primary: #f6ecc8;
-  --secondary: #a4d189;
-  --accent: #ffccd5;
+  --primary: #faf4df;
+  --secondary: #94c973;
+  --accent: #f5b5c1;
 }
 
 :root[data-theme="dark"] {
   --text: #fde8e8;
   --background: #000000;
   --primary: #62510e;
-  --secondary: #48762e;
-  --accent: #330009;
+  --secondary: #447e22;
+  --accent: #430c32;
 }
 
 :root[data-theme] {
@@ -155,6 +155,123 @@ a {
   transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
 }
 
+.form {
+  margin-top: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.label {
+  font-weight: 600;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.input,
+.select {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.textarea {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  resize: vertical;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.formRow {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.formRowTop {
+  align-items: flex-start;
+}
+
+.fieldNarrow {
+  min-width: 180px;
+}
+
+.fieldGrow {
+  flex: 1;
+}
+
+.helpText {
+  font-size: 0.9rem;
+}
+
+.check {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.button {
+  appearance: none;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font: inherit;
+  cursor: pointer;
+  width: fit-content;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.button:not(:disabled) {
+  background: var(--secondary);
+  border-color: var(--secondary);
+}
+
+.button:not(:disabled):hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: color-mix(in srgb, var(--surface) 70%, var(--muted) 30%);
+  border-color: color-mix(in srgb, var(--border) 30%, var(--muted) 70%);
+}
+
+.resultBox {
+  margin-top: 18px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   body,
   .nav,
@@ -164,5 +281,25 @@ a {
   .prose code,
   .themeToggle {
     transition: none;
+  }
+
+  .textarea,
+  .button {
+    transition: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .formRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .formRowTop {
+    align-items: stretch;
+  }
+
+  .fieldNarrow {
+    min-width: 0;
   }
 }
