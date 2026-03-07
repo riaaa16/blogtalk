@@ -1,0 +1,249 @@
+.test {
+    border: 1px solid red;
+}
+
+.test2 {
+    border: 1px solid blue;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    max-height: 100%;
+}
+
+:root {
+    --text: rgb(26, 24, 23);
+    --nav-text: white;
+}
+
+.title { font-size: 2.25rem; }
+.h1 { font-size: 2rem; font-weight: bold; }
+.h2 { font-size: 1.75rem; }
+.h3 { font-size: 1.5rem; }
+.p { font-size: 1rem; }
+
+.title, .h1, .h2, .h3, .p, p {
+    text-wrap: balance;
+    color: var(--text);
+}
+
+.flex-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+}
+
+.h-100 {
+    height: 100%;
+}
+
+.plaid {
+  background-color: #b09d75;
+  background-image: repeating-linear-gradient(45deg, #baa77a, #baa77a 10px, transparent 10px, transparent 40px), repeating-linear-gradient(-45deg, #baa77a, #baa77a 10px, transparent 10px, transparent 40px);
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    width: 100vw;
+}
+
+#nav {
+    padding: 1rem 3rem;
+    width: 100%;
+    font-weight: bold;
+    text-transform: lowercase;
+}
+
+#home {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+#home > div {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+#home > #posts {
+    flex: 4 1 0;
+}
+
+#home > #info {
+    flex: 6 1 0;
+}
+
+#info > div {
+    flex: 1 1 0;
+}
+
+#posts {
+    padding: 2rem;
+    gap: 1rem;
+    min-height: 0;
+    overflow: hidden;
+}
+
+#posts .h1 {
+    padding: 0 1rem;
+}
+
+.cards-frame {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    gap: 2rem;
+    padding: 1rem;
+    scrollbar-width: none;
+}
+
+.cards-frame::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+.cards-frame > .card {
+    flex-shrink: 0;
+}
+
+.card {
+    gap: 1rem;
+    border: 2px solid var(--text);
+    border-radius: 2rem;
+    background-color: rgb(221, 218, 198);
+    overflow: hidden;
+    transition: transform 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+}
+
+.card:hover {
+    transform: rotate(-2deg);
+}
+
+#posts .card {
+    background-color: rgb(221, 218, 198);
+}
+
+.scallop {
+    padding: 2rem;
+    padding-bottom: 2.5rem;
+    gap: 1rem;
+    background-color: white;
+    mask: 
+        linear-gradient(0,#0000 2em,#000 0),
+        radial-gradient(2em,#000 calc(100% - 1px),#0000) bottom/3.7em 4em repeat-x;
+    -webkit-mask:
+        linear-gradient(0,#0000 2em,#000 0),
+        radial-gradient(2em,#000 calc(100% - 1px),#0000) bottom/3.7em 4em repeat-x;
+}
+
+div.tags {
+    gap: 1rem;
+}
+
+div.tags > span {
+    padding: 0.5rem 0.75rem;
+    background-color: rgb(236, 177, 200);
+    border-radius: 1.5rem;
+}
+
+#posts .card > p {
+    padding: 0 2rem;
+    padding-bottom: 2rem;
+    background-color: rgb(221, 218, 198);
+}
+
+#info {
+    padding: 3rem;
+    padding-top: 2rem;
+}
+
+#info > div {
+    padding: 1.5rem 0em;
+    border-bottom:  1px solid var(--text);
+}
+
+#info > div:not(:first-child) {
+    padding-top: 2rem;
+}
+
+#info > div:first-child {
+    padding-top: 0;
+}
+
+#info > div:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+#info div.flex-col {
+    gap: 1em;
+}
+
+#socials > #links {
+    gap: 1rem;
+    font-size: 1.5rem;
+}
+
+#links a {
+    text-decoration: none;
+}
+
+#links i {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    height: fit-content;
+    width: fit-content;
+    border-radius: 50%;
+    border-width: 2px;
+    border-style: solid;
+    transition: color ease-in-out 150ms, background-color ease-in-out 150ms, border-color ease-in-out 150ms;
+}
+
+.blue {
+    --light: rgb(124, 181, 255);
+    --dark: rgb(12, 57, 116);
+}
+
+.pink {
+    --light: rgb(255, 157, 190);
+    --dark: rgb(116, 12, 57);
+}
+
+.yellow {
+    --light: rgb(240, 226, 106);
+    --dark: rgb(116, 88, 12);
+}
+
+.blue, .pink, .yellow {
+    background-color: var(--light);
+    color: var(--dark);
+    border-color: var(--light);
+}
+
+.blue:hover, .pink:hover, .yellow:hover {
+    background-color: white;
+    color: var(--dark);
+    border-color: var(--dark);
+}
+
+#links span {
+    display: none;
+}
+
+/*LIGHT MODE*/
+
+#nav.light {
+    background-color: var(--text);
+    color: var(--nav-text);
+}
