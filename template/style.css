@@ -89,6 +89,7 @@ body {
 
 #posts {
     padding: 2rem;
+    padding-bottom: 0;
     gap: 1rem;
     min-height: 0;
     overflow: hidden;
@@ -104,6 +105,7 @@ body {
     overflow-y: auto;
     gap: 2rem;
     padding: 1rem;
+    padding-bottom: 2rem;
     scrollbar-width: none;
 }
 
@@ -168,25 +170,22 @@ div.tags > span {
 }
 
 #info > div {
+    flex: 1 1 0;
+    min-height: 0;
     padding: 1.5rem 0em;
     border-bottom:  1px solid var(--text);
 }
 
-#info > div:not(:first-child) {
-    padding-top: 2rem;
-}
-
-#info > div:first-child {
-    padding-top: 0;
+#socials {
+    flex: 0 0 auto;
 }
 
 #info > div:last-child {
-    padding-bottom: 0;
     border-bottom: none;
 }
 
-#info div.flex-col {
-    gap: 1em;
+#info > div.flex-col {
+    gap: 2rem;
 }
 
 #socials > #links {
