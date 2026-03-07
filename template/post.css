@@ -1,0 +1,80 @@
+html, body {
+    height: auto;
+    max-height: none;
+    overflow-y: auto;
+}
+
+body > div.flex-col {
+    min-height: 100vh;
+}
+
+#content {
+    flex: 1 1 auto;
+    padding: 2rem;
+}
+
+.post-container {
+    width: 100%;
+    max-width: 64rem;
+    margin: 0 auto;
+    position: relative;
+}
+
+.post.card {
+    transform: none;
+    width: 100%;
+}
+
+.post.card:hover {
+    transform: none;
+}
+
+.post-title-row {
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.post-title-row > .h1 {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+
+.post-container > img.pushpin {
+    position: absolute;
+    top: -1.5rem;
+    right: 0.5rem;
+    height: 5rem;
+    width: auto;
+    z-index: 2;
+    pointer-events: none;
+    transform: rotate(10deg);
+}
+
+.post-body {
+    padding: 2rem;
+}
+
+.post-date {
+    margin-top: 0.25rem;
+}
+
+.post-body > p + p {
+    margin-top: 1rem;
+}
+
+@media only screen and (max-width: 768px) {
+    .post-container > img.pushpin {
+        display: none;
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    #content {
+        padding: 1.25rem;
+    }
+
+    .post-body {
+        padding: 1.25rem;
+    }
+}
