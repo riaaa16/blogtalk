@@ -53,14 +53,23 @@ body > div.flex-col {
 
 .post-body {
     padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .post-date {
     margin-top: 0.25rem;
 }
 
-.post-body > p + p {
-    margin-top: 1rem;
+
+.post-body h1,
+.post-body h2,
+.post-body h3,
+.post-body h4,
+.post-body h5,
+.post-body h6 {
+    margin-bottom: 0.5rem;
 }
 
 @media only screen and (max-width: 768px) {

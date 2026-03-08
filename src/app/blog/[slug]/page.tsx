@@ -1,8 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPostBySlug } from "@/lib/posts";
+
+import "../../../../template/post.css";
 
 export const dynamic = "force-static";
 export const dynamicParams = false;
@@ -37,11 +40,49 @@ export default async function BlogPostPage({
   const post = await getPostBySlug(slug);
   if (!post) return notFound();
 
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH?.trim() || "";
+  const prettyDate = (() => {
+    const d = new Date(post.date);
+    if (Number.isNaN(d.getTime())) return post.date;
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }).format(d);
+  })();
+
   return (
-    <main className="container">
-      <h1>{post.title}</h1>
-      <p className="muted">{post.date}</p>
-      <article className="prose" dangerouslySetInnerHTML={{ __html: post.html }} />
-    </main>
+    <div className="flex-col">
+      <Link id="nav" className="title" href="/" target="_self">
+        Bloggu
+      </Link>
+
+      <main id="content" className="plaid flex-col">
+        <div className="post-container">
+          <img
+            className="pushpin"
+            src={`${basePath}/images/pushpin.png`}
+            alt=""
+            aria-hidden="true"
+          />
+
+          <article className="post card flex-col">
+            <header className="card-header flex-col scallop">
+              <div className="post-title-row flex-row">
+                <p className="h1">{post.title}</p>
+              </div>
+              <p className="h3 post-date">{prettyDate}</p>
+              <div className="tags flex-row">
+                {post.tags.map((t) => (
+                  <span key={t}>{t}</span>
+                ))}
+              </div>
+            </header>
+
+            <div className="post-body" dangerouslySetInnerHTML={{ __html: post.html }} />
+          </article>
+        </div>
+      </main>
+    </div>
   );
 }

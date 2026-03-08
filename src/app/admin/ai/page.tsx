@@ -77,7 +77,7 @@ export default function AiAdminPage() {
   }
 
   return (
-    <main className="container">
+    <main className="adminContainer">
       <h1>AI Blog Post Generator</h1>
       <p className="muted">
         Sends your instruction to a local AI manager server at{" "}

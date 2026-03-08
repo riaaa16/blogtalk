@@ -1,8 +1,5 @@
 import "./globals.css";
-import Link from "next/link";
 import type { Metadata } from "next";
-
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const metadata: Metadata = {
   title: {
@@ -16,31 +13,15 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-theme="light">
+    <html lang="en">
       <head>
-        <script
-          id="theme-init"
-          dangerouslySetInnerHTML={{
-            __html: `(function(){
-  try {
-    var t = localStorage.getItem('theme');
-    if (t === 'light' || t === 'dark') {
-      document.documentElement.setAttribute('data-theme', t);
-    }
-  } catch (e) {}
-})();`,
-          }}
+        <base target="_blank" />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
         />
       </head>
-      <body>
-        <nav className="nav">
-          <Link href="/">Home</Link>
-          <Link href="/blog">Blog</Link>
-          <div className="navSpacer" />
-          <ThemeToggle />
-        </nav>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
