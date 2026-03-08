@@ -1,0 +1,24 @@
+{
+  "aboutMeMarkdown": "about-me.md",
+  "aboutSiteMarkdown": "about-site.md",
+  "socialLinks": [
+    {
+      "label": "LinkedIn",
+      "href": "https://www.linkedin.com/in/viktoria-gaiser/",
+      "icon": "bi-linkedin",
+      "themeClass": "blue"
+    },
+    {
+      "label": "GitHub",
+      "href": "https://github.com/riaaa16",
+      "icon": "bi-github",
+      "themeClass": "pink"
+    },
+    {
+      "label": "Portfolio",
+      "href": "https://viktoria-gaiser.vercel.app/",
+      "icon": "bi-journal-code",
+      "themeClass": "yellow"
+    }
+  ]
+}

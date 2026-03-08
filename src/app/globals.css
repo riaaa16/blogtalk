@@ -41,6 +41,10 @@ html {
 .h3 { font-size: 1.5rem; font-weight: 500; }
 .p { font-size: 1rem; }
 
+.card-header .h2 {
+    font-weight: 500;
+}
+
 .flex-col {
     display: flex;
     flex-direction: column;
@@ -61,7 +65,7 @@ html {
 }
 
 body {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: "Inclusive Sans", Arial, Helvetica, sans-serif;
     width: 100%;
 }
 

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { getAllPosts } from "@/lib/posts";
+import { getHomeContent } from "@/lib/homeContent";
 
 export const dynamic = "error";
 
 export default async function HomePage() {
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH?.trim() || "";
   const posts = await getAllPosts();
+  const home = await getHomeContent();
 
   return (
     <div className="flex-col h-100">
@@ -47,17 +49,10 @@ export default async function HomePage() {
                 aria-hidden="true"
               />
             </p>
-            <div className="body flex-col">
-              <p>
-                Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque
-                faucibus ex sapien vitae pellentesque sem placerat. In id cursus
-                mi pretium tellus duis convallis. Tempus leo eu aenean sed diam
-                urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum
-                egestas. Iaculis massa nisl malesuada lacinia integer nunc
-                posuere. Ut hendrerit semper vel class aptent taciti sociosqu.
-                Ad litora torquent per conubia nostra inceptos himenaeos.
-              </p>
-            </div>
+            <div
+              className="body flex-col"
+              dangerouslySetInnerHTML={{ __html: home.aboutMeHtml }}
+            />
           </div>
 
           <div id="about-site" className="flex-col">
@@ -70,15 +65,10 @@ export default async function HomePage() {
               />
               How This Website Works
             </p>
-            <div className="body flex-col">
-              <p>This blog is hosted with Next.js, on GitHub Pages.</p>
-              <p>
-                Blog posts are generated using a Python CLI tool or a locally
-                hosted-page. The website owner prompts a local LLM to write blog
-                posts, which can then be automatically committed and pushed to
-                the website with use of GitHub PATs.
-              </p>
-            </div>
+            <div
+              className="body flex-col"
+              dangerouslySetInnerHTML={{ __html: home.aboutSiteHtml }}
+            />
           </div>
 
           <div id="socials" className="flex-col">
@@ -92,18 +82,12 @@ export default async function HomePage() {
               />
             </p>
             <div id="links" className="flex-row">
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
-                <i className="bi bi-linkedin blue"></i>
-                <span>LinkedIn</span>
-              </a>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer">
-                <i className="bi bi-github pink"></i>
-                <span>GitHub</span>
-              </a>
-              <a href="https://portfolio.com" target="_blank" rel="noopener noreferrer">
-                <i className="bi bi-journal-code yellow"></i>
-                <span>Portfolio</span>
-              </a>
+              {home.socialLinks.map((l) => (
+                <a key={l.href} href={l.href} rel="noopener noreferrer">
+                  <i className={`bi ${l.icon} ${l.themeClass}`}></i>
+                  <span>{l.label}</span>
+                </a>
+              ))}
             </div>
           </div>
         </div>
