@@ -52,7 +52,7 @@ export default async function BlogPostPage({
   })();
 
   return (
-    <div className="flex-col">
+    <div className="flex-col h-100 post-page">
       <Link id="nav" className="title" href="/" target="_self">
         Bloggu
       </Link>
