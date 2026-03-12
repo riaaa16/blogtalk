@@ -3,6 +3,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import { remark } from "remark";
 import html from "remark-html";
+import remarkGfm from "remark-gfm";
 
 export type PostMeta = {
   title: string;
@@ -19,6 +20,32 @@ export type Post = PostMeta & {
 };
 
 const postsDir = path.join(process.cwd(), "content", "posts");
+
+const tableThemes = ["pink", "yellow", "blue"] as const;
+type TableTheme = (typeof tableThemes)[number];
+
+function hashToIndex(input: string): number {
+  // Deterministic, fast hash (djb2-ish) to pick a "random" theme.
+  let h = 5381;
+  for (let i = 0; i < input.length; i++) {
+    h = (h * 33) ^ input.charCodeAt(i);
+  }
+  return h >>> 0;
+}
+
+function decorateTables(renderedHtml: string, seed: string): string {
+  let tableIndex = 0;
+  return renderedHtml.replace(/<table(\s[^>]*)?>/g, (match, attrs) => {
+    const existingAttrs = typeof attrs === "string" ? attrs : "";
+    if (/\bdata-table-theme\s*=/.test(existingAttrs)) return match;
+
+    const theme = tableThemes[
+      hashToIndex(`${seed}#table-${tableIndex++}`) % tableThemes.length
+    ] as TableTheme;
+
+    return `<table${existingAttrs} data-table-theme="${theme}">`;
+  });
+}
 
 function asString(value: unknown, field: string): string {
   if (typeof value !== "string" || !value.trim()) {
@@ -92,11 +119,12 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     const thisSlug = typeof data.slug === "string" ? data.slug.trim() : "";
     if (thisSlug !== slug) continue;
 
-    const processed = await remark().use(html).process(parsed.content);
+    const processed = await remark().use(remarkGfm).use(html).process(parsed.content);
+    const rendered = decorateTables(processed.toString(), slug);
     return {
       ...meta,
       markdown: parsed.content,
-      html: processed.toString(),
+      html: rendered,
       sourcePath: path.relative(process.cwd(), full),
     };
   }

@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
@@ -94,12 +95,24 @@ def _create_post_from_instruction(
     )
 
     if git and result.get("status") == "ok":
-        git_result = stage_commit_push(
-            repo_root=str(repo_root()),
-            paths=[result["path"]],
-            message=f"AI Post: {result['title']}",
-        )
-        result["git"] = git_result
+        # Do git ops in the background so the HTTP request can return quickly.
+        # Writing the post is the primary UX; push/deploy checks can take a while.
+        post_path = str(result.get("path") or "")
+        commit_message = f"AI Post: {result.get('title') or title}"
+
+        def _git_worker() -> None:
+            try:
+                git_result = stage_commit_push(
+                    repo_root=str(repo_root()),
+                    paths=[post_path],
+                    message=commit_message,
+                )
+                print(f"git: {git_result}")
+            except Exception as e:
+                print(f"git error: {e}")
+
+        threading.Thread(target=_git_worker, daemon=True).start()
+        result["git"] = {"status": "pending"}
 
     return result
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { getAiManagerBaseUrl } from "@/lib/aiManager";
 
@@ -10,9 +10,11 @@ type ApiOk = {
   status: "ok";
   path: string;
   slug: string;
+  view?: string;
   title: string;
   date: string;
   git?: unknown;
+  messages?: string[];
 };
 
 type ApiErr = {
@@ -22,10 +24,20 @@ type ApiErr = {
 
 type ApiResponse = ApiOk | ApiErr;
 
+type Toast =
+  | { id: string; type: "success"; path: string; view: string }
+  | { id: string; type: "error"; message: string };
+
+type ToastInput =
+  | { type: "success"; path: string; view: string }
+  | { type: "error"; message: string };
+
 export const dynamic = "error";
 
 export default function AiAdminPage() {
   const baseUrl = useMemo(() => getAiManagerBaseUrl(), []);
+  const [toastPreview, setToastPreview] = useState(false);
+  const toastTimersRef = useRef<Record<string, number>>({});
 
   const [instruction, setInstruction] = useState("");
   const [length, setLength] = useState<"short" | "medium" | "long">("medium");
@@ -33,7 +45,70 @@ export default function AiAdminPage() {
   const [overwrite, setOverwrite] = useState(false);
   const [git, setGit] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<ApiResponse | null>(null);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  useEffect(() => {
+    return () => {
+      for (const id of Object.keys(toastTimersRef.current)) {
+        window.clearTimeout(toastTimersRef.current[id]);
+      }
+      toastTimersRef.current = {};
+    };
+  }, []);
+
+  const dismissToast = useCallback((id: string) => {
+    const timer = toastTimersRef.current[id];
+    if (timer) {
+      window.clearTimeout(timer);
+      delete toastTimersRef.current[id];
+    }
+    setToasts((curr) => curr.filter((t) => t.id !== id));
+  }, []);
+
+  const addToast = useCallback(
+    (toast: ToastInput) => {
+      const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+      const nextToast: Toast =
+        toast.type === "success"
+          ? { id, type: "success", path: toast.path, view: toast.view }
+          : { id, type: "error", message: toast.message };
+
+      setToasts((curr) => [nextToast, ...curr].slice(0, 3));
+
+      if (toastTimersRef.current[id]) {
+        window.clearTimeout(toastTimersRef.current[id]);
+      }
+      toastTimersRef.current[id] = window.setTimeout(() => {
+        dismissToast(id);
+      }, 8000);
+    },
+    [dismissToast],
+  );
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      setToastPreview(params.get("toastPreview") === "1");
+    } catch {
+      setToastPreview(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!toastPreview) return;
+    if (process.env.NODE_ENV === "production") return;
+    addToast({
+      type: "success",
+      path: "content/posts/2026-03-12-toast-preview.md",
+      view: "/blog/toast-preview",
+    });
+    addToast({
+      type: "error",
+      message: "Model did not return valid JSON: Invalid \\\\escape at char 715",
+    });
+  }, [toastPreview]);
 
   function parseTags(value: string): string[] {
     return value
@@ -44,7 +119,6 @@ export default function AiAdminPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setResult(null);
 
     const trimmed = instruction.trim();
     if (!trimmed) return;
@@ -64,11 +138,16 @@ export default function AiAdminPage() {
       });
 
       const data = (await res.json()) as ApiResponse;
-      setResult(data);
+      if (data.status === "ok") {
+        const view = data.view?.trim() || `/blog/${data.slug}`;
+        addToast({ type: "success", path: data.path, view });
+      } else {
+        addToast({ type: "error", message: data.error });
+      }
     } catch (err) {
-      setResult({
-        status: "error",
-        error:
+      addToast({
+        type: "error",
+        message:
           err instanceof Error
             ? err.message
             : "Failed to reach local AI manager server",
@@ -83,6 +162,47 @@ export default function AiAdminPage() {
       <Link id="nav" className="title" href="/" target="_self">
         Bloggu
       </Link>
+
+      {toasts.length ? (
+        <div className="toast-stack" aria-live="polite">
+          {toasts.map((t) => (
+            <div
+              key={t.id}
+              className={`toast${t.type === "error" ? " toast--error" : ""}`}
+              role="status"
+            >
+              <div className="toast-body flex-col">
+                {t.type === "success" ? (
+                  <>
+                    <p className="p">
+                      Wrote <code>{t.path}</code>
+                    </p>
+                    <p className="p" style={{ opacity: 0.85 }}>
+                      View:{" "}
+                      <Link href={t.view} target="_self">
+                        {t.view}
+                      </Link>
+                    </p>
+                  </>
+                ) : (
+                  <p className="p">
+                    <strong>Error:</strong> {t.message}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                className="toast-close"
+                onClick={() => dismissToast(t.id)}
+                aria-label="Dismiss"
+                title="Dismiss"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : null}
 
       <main id="content" className="plaid flex-col">
         <div className="post-container">
@@ -166,28 +286,6 @@ export default function AiAdminPage() {
                   {busy ? "Generating…" : "Generate post"}
                 </button>
               </form>
-
-              {result ? (
-                <section aria-live="polite">
-                  {result.status === "ok" ? (
-                    <>
-                      <p className="p">
-                        Wrote <code>{result.path}</code>
-                      </p>
-                      <p className="p" style={{ opacity: 0.85 }}>
-                        View:{" "}
-                        <Link href={`/blog/${result.slug}`} target="_self">
-                          {`/blog/${result.slug}`}
-                        </Link>
-                      </p>
-                    </>
-                  ) : (
-                    <p className="p">
-                      <strong>Error:</strong> {result.error}
-                    </p>
-                  )}
-                </section>
-              ) : null}
             </div>
           </article>
         </div>

@@ -2,6 +2,32 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { remark } from "remark";
 import html from "remark-html";
+import remarkGfm from "remark-gfm";
+
+const tableThemes = ["pink", "yellow", "blue"] as const;
+type TableTheme = (typeof tableThemes)[number];
+
+function hashToIndex(input: string): number {
+  let h = 5381;
+  for (let i = 0; i < input.length; i++) {
+    h = (h * 33) ^ input.charCodeAt(i);
+  }
+  return h >>> 0;
+}
+
+function decorateTables(renderedHtml: string, seed: string): string {
+  let tableIndex = 0;
+  return renderedHtml.replace(/<table(\s[^>]*)?>/g, (match, attrs) => {
+    const existingAttrs = typeof attrs === "string" ? attrs : "";
+    if (/\bdata-table-theme\s*=/.test(existingAttrs)) return match;
+
+    const theme = tableThemes[
+      hashToIndex(`${seed}#table-${tableIndex++}`) % tableThemes.length
+    ] as TableTheme;
+
+    return `<table${existingAttrs} data-table-theme="${theme}">`;
+  });
+}
 
 export type SocialLink = {
   label: string;
@@ -48,8 +74,8 @@ async function markdownFileToHtml(markdownFileName: string): Promise<string> {
   const safeName = path.basename(markdownFileName);
   const fullPath = path.join(siteContentDir, safeName);
   const md = await fs.readFile(fullPath, "utf8");
-  const processed = await remark().use(html).process(md);
-  return processed.toString();
+  const processed = await remark().use(remarkGfm).use(html).process(md);
+  return decorateTables(processed.toString(), safeName);
 }
 
 export async function getHomeContent(): Promise<HomeContent> {

@@ -311,9 +311,116 @@ div.tags > span {
 .post-body ul, .post-body ol { padding-left: 1.5rem; }
 .post-body pre { overflow: auto; }
 
+/* GFM tables inside Markdown */
+.post-body table {
+    width: 100%;
+    border: 2px solid var(--text);
+    border-radius: 1.5rem;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+    background-color: white;
+}
+
+.post-body th,
+.post-body td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    vertical-align: top;
+    border-right: 1px solid var(--text);
+    border-bottom: 1px solid var(--text);
+}
+
+.post-body tr > :last-child {
+    border-right: none;
+}
+
+.post-body tbody tr:last-child > * {
+    border-bottom: none;
+}
+
+.post-body thead th {
+    font-weight: 700;
+}
+
+.post-body table thead th {
+    background-color: var(--blue-light);
+    color: var(--blue-dark);
+}
+
+.post-body table[data-table-theme="pink"] thead th {
+    background-color: var(--pink-light);
+    color: var(--pink-dark);
+}
+
+.post-body table[data-table-theme="yellow"] thead th {
+    background-color: var(--yellow-light);
+    color: var(--yellow-dark);
+}
+
+.post-body table[data-table-theme="blue"] thead th {
+    background-color: var(--blue-light);
+    color: var(--blue-dark);
+}
+
 /* Admin AI page: match blog styling while improving form spacing */
 .admin-ai main#content .post-body {
     gap: 1.5rem !important;
+}
+
+.admin-ai .toast-stack {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: min(36rem, calc(100vw - 2rem));
+}
+
+.admin-ai .toast {
+    position: relative;
+    padding: 1rem 3.25rem 1rem 1rem;
+    border: 2px solid var(--text);
+    border-radius: 1rem;
+    background-color: white;
+}
+
+.admin-ai .toast-body {
+    gap: 0.5rem;
+}
+
+.admin-ai .toast-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border: 2px solid var(--text);
+    border-radius: 0.75rem;
+    background-color: var(--beige);
+    color: var(--text);
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color ease-in-out 150ms, border-color ease-in-out 150ms;
+}
+
+.admin-ai .toast-close:hover {
+    background-color: var(--blue-light);
+    border-color: var(--blue-dark);
+}
+
+.admin-ai .toast--error .toast-close {
+    background-color: var(--pink-light);
+    border-color: var(--pink-light);
+    color: var(--pink-dark);
+}
+
+.admin-ai .toast--error .toast-close:hover {
+    background-color: transparent;
+    border-color: var(--pink-dark);
+    color: var(--pink-dark);
 }
 
 .admin-ai main#content .post-body > form {

@@ -72,6 +72,7 @@ def _build_prompt(user_instruction: str) -> str:
         "Rules:\n"
         "- Do NOT include frontmatter. The tool will add it.\n"
         "- Keep content as clean Markdown.\n"
+        "- Do NOT wrap the entire content in a fenced code block (no ```markdown ... ```).\n"
         "- Do NOT wrap the entire post in blockquotes (avoid leading '>' on lines).\n"
         "- summary is REQUIRED (1-2 sentences).\n"
         "- Do NOT double-escape newlines (avoid literal \\\\n in the string).\n"
@@ -92,7 +93,8 @@ def _build_repair_prompt(*, user_instruction: str, bad_output: str) -> str:
         "  \"content\": string,\n"
         "  \"overwrite\": boolean\n"
         "}\n\n"
-        "Do NOT wrap content in Markdown blockquotes (avoid leading '>' on lines).\n\n"
+        "Do NOT wrap content in Markdown blockquotes (avoid leading '>' on lines).\n"
+        "Do NOT wrap the entire content in a fenced code block (no ```markdown ... ```).\n\n"
         f"Original instruction: {user_instruction}\n\n"
         "Bad output to repair (verbatim):\n"
         f"{bad_output}\n"
@@ -160,6 +162,14 @@ def main(argv: list[str] | None = None) -> int:
                 overwrite=overwrite,
             )
             print(json.dumps(result, indent=2), file=sys.stderr)
+
+            if result.get("status") == "ok":
+                path = str(result.get("path") or "").strip()
+                view = str(result.get("view") or f"/blog/{result.get('slug')}").strip()
+                if path:
+                    print(f"Wrote {path}", file=sys.stderr)
+                if view and view != "/blog/None":
+                    print(f"View: {view}", file=sys.stderr)
 
             if args.git and result.get("status") == "ok":
                 rel_path = result["path"]

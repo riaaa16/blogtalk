@@ -33,6 +33,27 @@ def normalize_markdown_body(body: str) -> str:
 
     s = body.replace("\r\n", "\n").replace("\r", "\n")
 
+    # Some models wrap the entire Markdown body in a fenced block like:
+    # ```markdown
+    # ...
+    # ```
+    # If the whole post is wrapped that way, unwrap it.
+    fence_re = re.compile(r"^```\s*(markdown|md)?\s*$", re.IGNORECASE)
+    lines0 = s.split("\n")
+    first_non_empty = next((i for i, ln in enumerate(lines0) if ln.strip()), None)
+    last_non_empty = next(
+        (i for i in range(len(lines0) - 1, -1, -1) if lines0[i].strip()),
+        None,
+    )
+    if (
+        first_non_empty is not None
+        and last_non_empty is not None
+        and first_non_empty < last_non_empty
+        and fence_re.match(lines0[first_non_empty].strip())
+        and lines0[last_non_empty].strip() == "```"
+    ):
+        s = "\n".join(lines0[first_non_empty + 1 : last_non_empty])
+
     escaped_newlines = s.count("\\n")
     actual_newlines = s.count("\n")
     if escaped_newlines and (actual_newlines == 0 or escaped_newlines > actual_newlines * 3):
@@ -99,6 +120,88 @@ def normalize_markdown_body(body: str) -> str:
                 out_lines.append(line)
 
         s = "\n".join(out_lines)
+
+    def _looks_like_pipe_table_row(line: str) -> bool:
+        # Conservative: only fix GitHub-style pipe tables that start with '|'.
+        # Avoids touching prose that incidentally contains pipes.
+        stripped = line.lstrip()
+        return stripped.startswith("|") and stripped.count("|") >= 2
+
+    def _parse_pipe_table_row(line: str) -> list[str]:
+        s_row = line.strip()
+        if s_row.startswith("|"):
+            s_row = s_row[1:]
+        if s_row.endswith("|"):
+            s_row = s_row[:-1]
+        return [cell.strip() for cell in s_row.split("|")]
+
+    def _is_separator_row(cells: list[str]) -> bool:
+        # Accept --- / :--- / ---: / :---: variants.
+        sep_cell_re = re.compile(r"^:?-{3,}:?$")
+        return bool(cells) and all(sep_cell_re.match(c) is not None for c in cells)
+
+    def _build_pipe_table_row(cells: list[str]) -> str:
+        return "| " + " | ".join(cells) + " |"
+
+    def _fix_pipe_table_block(block_lines: list[str]) -> list[str]:
+        if len(block_lines) < 2:
+            return block_lines
+
+        indent = re.match(r"^(\s*)", block_lines[0]).group(1)  # type: ignore[union-attr]
+
+        header_cells = _parse_pipe_table_row(block_lines[0])
+        col_count = len(header_cells)
+        if col_count < 2:
+            return block_lines
+
+        fixed: list[str] = [indent + _build_pipe_table_row(header_cells)]
+
+        idx = 1
+        if idx < len(block_lines):
+            sep_cells = _parse_pipe_table_row(block_lines[idx])
+            if _is_separator_row([c for c in sep_cells if c]):
+                # Normalize separator to the header's column count.
+                normalized = (sep_cells + ["---"] * col_count)[:col_count]
+                normalized = [c if re.match(r"^:?-{3,}:?$", c or "") else "---" for c in normalized]
+                fixed.append(indent + _build_pipe_table_row(normalized))
+                idx += 1
+
+        if len(fixed) == 1:
+            fixed.append(indent + _build_pipe_table_row(["---"] * col_count))
+
+        for j in range(idx, len(block_lines)):
+            row_cells = _parse_pipe_table_row(block_lines[j])
+            normalized = (row_cells + [""] * col_count)[:col_count]
+            fixed.append(indent + _build_pipe_table_row(normalized))
+
+        return fixed
+
+    # Repair common AI-produced Markdown table issues (missing separator row,
+    # missing trailing pipes, and short rows) while preserving fenced code blocks.
+    lines = s.split("\n")
+    out_lines = []
+    in_fence = False
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+            out_lines.append(line)
+            i += 1
+            continue
+
+        if not in_fence and _looks_like_pipe_table_row(line):
+            block: list[str] = []
+            while i < len(lines) and not lines[i].lstrip().startswith("```") and _looks_like_pipe_table_row(lines[i]):
+                block.append(lines[i])
+                i += 1
+            out_lines.extend(_fix_pipe_table_block(block))
+            continue
+
+        out_lines.append(line)
+        i += 1
+
+    s = "\n".join(out_lines)
     return s
 
 
@@ -233,10 +336,17 @@ def write_post(*, title: str, tags: list[str], summary: str, content: str, overw
     target.write_text(md, encoding="utf-8", newline="\n")
     rel = target.relative_to(repo_root())
 
+    view = f"/blog/{post_slug}"
+
     return {
         "status": "ok",
         "path": str(rel).replace("\\", "/"),
         "slug": post_slug,
+        "view": view,
         "title": title.strip(),
         "date": post_date,
+        "messages": [
+            f"Wrote {str(rel).replace('\\\\', '/')}",
+            f"View: {view}",
+        ],
     }
