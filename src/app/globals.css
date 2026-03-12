@@ -22,11 +22,11 @@ html {
     --bg-dark: #b09d75;
     --beige: rgb(221, 218, 198);
     --bg-light:  #baa77a;
-    --blue-light: rgb(124, 181, 255);
+    --blue-light: rgb(118, 175, 249);
     --blue-dark: rgb(12, 57, 116);
-    --pink-light: rgb(255, 157, 190);
+    --pink-light: rgb(247, 148, 181);
     --pink-dark: rgb(116, 12, 57);
-    --yellow-light: rgb(240, 226, 106);
+    --yellow-light: rgb(237, 223, 99);
     --yellow-dark: rgb(116, 88, 12);
 }
 
@@ -310,6 +310,61 @@ div.tags > span {
 .post-body p + p { margin-top: 1rem; }
 .post-body ul, .post-body ol { padding-left: 1.5rem; }
 .post-body pre { overflow: auto; }
+
+/* Admin AI page: match blog styling while improving form spacing */
+.admin-ai main#content .post-body {
+    gap: 1.5rem !important;
+}
+
+.admin-ai main#content .post-body > form {
+    gap: 1.5rem;
+}
+
+.admin-ai input:not([type="checkbox"]),
+.admin-ai select,
+.admin-ai textarea {
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--text);
+    border-radius: 0.75rem;
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--text);
+    background-color: white;
+}
+
+.admin-ai textarea {
+    resize: vertical;
+}
+
+.admin-ai button {
+    padding: 0.75rem 1.25rem;
+    border: 2px solid var(--text);
+    border-radius: 0.75rem;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    background-color: var(--beige);
+    color: var(--text);
+    cursor: pointer;
+    transition: background-color ease-in-out 150ms, border-color ease-in-out 150ms, color ease-in-out 150ms;
+}
+
+.admin-ai button:not(:disabled) {
+    border-color: var(--blue-light);
+    background-color: var(--blue-light);
+    color: var(--blue-dark);
+}
+
+.admin-ai button:not(:disabled):hover {
+    border-color: var(--blue-dark);
+    background-color: transparent;
+    color: var(--blue-dark);
+}
+
+.admin-ai button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
 
 /*MEDIA QUERY*/
 /*TABLETS*/

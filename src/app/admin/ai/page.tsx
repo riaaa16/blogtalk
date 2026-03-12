@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { getAiManagerBaseUrl } from "@/lib/aiManager";
 
+import "../../../../template/post.css";
+
 type ApiOk = {
   status: "ok";
   path: string;
@@ -77,103 +79,119 @@ export default function AiAdminPage() {
   }
 
   return (
-    <main className="adminContainer">
-      <h1>AI Blog Post Generator</h1>
-      <p className="muted">
-        Sends your instruction to a local AI manager server at{" "}
-        <code>{baseUrl}</code>.
-      </p>
+    <div className="admin-ai flex-col">
+      <Link id="nav" className="title" href="/" target="_self">
+        Bloggu
+      </Link>
 
-      <form onSubmit={onSubmit} className="form">
-        <div className="formRow formRowTop">
-          <div className="field fieldNarrow">
-            <label className="label" htmlFor="length">
-              Length
-            </label>
-            <select
-              id="length"
-              className="select"
-              value={length}
-              onChange={(e) => setLength(e.target.value as "short" | "medium" | "long")}
-            >
-              <option value="short">Short</option>
-              <option value="medium">Medium</option>
-              <option value="long">Long</option>
-            </select>
-          </div>
+      <main id="content" className="plaid flex-col">
+        <div className="post-container">
+          <article className="post card flex-col">
+            <header className="card-header flex-col scallop">
+              <p className="h1">AI Blog Post Generator</p>
+              <p className="p">
+                Sends your instruction to a local AI manager server at{" "}
+                <code>{baseUrl}</code>.
+              </p>
+            </header>
 
-          <div className="field fieldGrow">
-            <label className="label" htmlFor="tags">
-              Tags
-            </label>
-            <input
-              id="tags"
-              className="input"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="AI, Agents, Next.js"
-              type="text"
-            />
-            <div className="muted helpText">
-              Comma-separated. If provided, these tags are forced.
+            <div className="post-body">
+              <form onSubmit={onSubmit} className="flex-col">
+                <div className="flex-row" style={{ gap: "1rem", flexWrap: "wrap" }}>
+                  <label className="flex-col" style={{ gap: "0.5rem" }} htmlFor="length">
+                    <span className="h3">Length</span>
+                    <select
+                      id="length"
+                      value={length}
+                      onChange={(e) =>
+                        setLength(e.target.value as "short" | "medium" | "long")
+                      }
+                    >
+                      <option value="short">Short</option>
+                      <option value="medium">Medium</option>
+                      <option value="long">Long</option>
+                    </select>
+                  </label>
+
+                  <label
+                    className="flex-col"
+                    style={{ gap: "0.5rem", flex: "1 1 16rem", minWidth: 0 }}
+                    htmlFor="tags"
+                  >
+                    <span className="h3">Tags</span>
+                    <input
+                      id="tags"
+                      value={tags}
+                      onChange={(e) => setTags(e.target.value)}
+                      placeholder="AI, Agents, Next.js"
+                      type="text"
+                    />
+                    <span className="p" style={{ opacity: 0.8 }}>
+                      Comma-separated. If provided, these tags are forced.
+                    </span>
+                  </label>
+                </div>
+
+                <label className="flex-col" style={{ gap: "0.5rem" }} htmlFor="instruction">
+                  <span className="h3">Prompt</span>
+                  <textarea
+                    id="instruction"
+                    value={instruction}
+                    onChange={(e) => setInstruction(e.target.value)}
+                    placeholder="Example: Write a post about..."
+                    rows={6}
+                  />
+                </label>
+
+                <div className="flex-row" style={{ gap: "1.5rem", flexWrap: "wrap" }}>
+                  <label className="flex-row" style={{ gap: "0.5rem", alignItems: "center" }}>
+                    <input
+                      type="checkbox"
+                      checked={overwrite}
+                      onChange={(e) => setOverwrite(e.target.checked)}
+                    />
+                    <span className="p">Overwrite if slug exists</span>
+                  </label>
+                  <label className="flex-row" style={{ gap: "0.5rem", alignItems: "center" }}>
+                    <input
+                      type="checkbox"
+                      checked={git}
+                      onChange={(e) => setGit(e.target.checked)}
+                    />
+                    <span className="p">Git add/commit/push</span>
+                  </label>
+                </div>
+
+                <button type="submit" disabled={busy || !instruction.trim()}>
+                  {busy ? "Generating…" : "Generate post"}
+                </button>
+              </form>
+
+              {result ? (
+                <section aria-live="polite">
+                  {result.status === "ok" ? (
+                    <>
+                      <p className="p">
+                        Wrote <code>{result.path}</code>
+                      </p>
+                      <p className="p" style={{ opacity: 0.85 }}>
+                        View:{" "}
+                        <Link href={`/blog/${result.slug}`} target="_self">
+                          {`/blog/${result.slug}`}
+                        </Link>
+                      </p>
+                    </>
+                  ) : (
+                    <p className="p">
+                      <strong>Error:</strong> {result.error}
+                    </p>
+                  )}
+                </section>
+              ) : null}
             </div>
-          </div>
+          </article>
         </div>
-
-        <label className="label" htmlFor="instruction">
-          Prompt
-        </label>
-        <textarea
-          id="instruction"
-          className="textarea"
-          value={instruction}
-          onChange={(e) => setInstruction(e.target.value)}
-          placeholder="Example: Write a post about..."
-          rows={5}
-        />
-
-        <div className="formRow">
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={overwrite}
-              onChange={(e) => setOverwrite(e.target.checked)}
-            />
-            Overwrite if slug exists
-          </label>
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={git}
-              onChange={(e) => setGit(e.target.checked)}
-            />
-            Git add/commit/push
-          </label>
-        </div>
-
-        <button className="button" type="submit" disabled={busy || !instruction.trim()}>
-          {busy ? "Generating…" : "Generate post"}
-        </button>
-      </form>
-
-      {result ? (
-        <section className="resultBox" aria-live="polite">
-          {result.status === "ok" ? (
-            <>
-              <p>
-                Wrote <code>{result.path}</code>
-              </p>
-              <p className="muted">
-                View: <Link href={`/blog/${result.slug}`}>{`/blog/${result.slug}`}</Link>
-              </p>
-            </>
-          ) : (
-            <p>
-              <strong>Error:</strong> {result.error}
-            </p>
-          )}
-        </section>
-      ) : null}
-    </main>
+      </main>
+    </div>
   );
 }
