@@ -84,4 +84,8 @@ This repo is configured for static export (`output: "export"`), so the web UI ta
 
 - `http://localhost:3000/admin/ai`
 
+Toast preview (dev only):
+
+- `http://localhost:3000/admin/ai?toastPreview=1`
+
 The page sends your prompt to `POST /api/create_post`, which generates a Markdown post under `content/posts/`.
